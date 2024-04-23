@@ -4,61 +4,79 @@
 
 using namespace std;
 
+void initShape(sf::RectangleShape& shape, sf::Vector2f const& pos, sf::Color const& color)
+{
+    shape.setFillColor(color);
+    shape.setPosition(pos);
+    shape.setOrigin(shape.getSize() * 0.5f); // el centro del rectángulo.-
+}
+
 int main() {
+    sf::RenderWindow window(sf::VideoMode(480,180), "Ventana de prueba");
+    window.setFramerateLimit(60);
 
-	sf::VideoMode modo(600, 600);
-	//is Valid, es un método para saber si la resolución que usamos es compatible con el fullscreen de nuestro monitor.
-	bool valid = modo.isValid();
-	//acá da Falso, porque 600x600 no es.
-	cout << valid << endl;
+    Formita circulo;
+    sf::RectangleShape rectangulo(sf::Vector2f(50, 50));
 
-	modo.width = 1920;
-	modo.height = 1080;
-	//Pero acá si da verdadero.
-	valid = modo.isValid();
-	cout << valid << endl;
+    sf::Vector2f startPos = sf::Vector2f(50, 50); //Posición inicial
+    sf::RectangleShape playerRect(sf::Vector2f(50, 50)); //Rectangulo del jugador
+    initShape(playerRect, startPos, sf::Color::Green); //"Inicializamos"
 
-	sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
-	sf::RenderWindow window(desktop, "Ventana de prueba", sf::Style::Titlebar | sf::Style::Close);
+    sf::RectangleShape targetRect(sf::Vector2f(50, 50));
+    initShape(targetRect, sf::Vector2f(400, 50), sf::Color::Blue);
 
-	Formita circulo;
-	sf::RectangleShape rectangulo(sf::Vector2f(50, 50));
-	rectangulo.setFillColor(sf::Color::Green);
-
-	while (window.isOpen())
-	{
-		sf::Event evento;
-
-		while (window.pollEvent(evento))
-		{
-			switch (evento.type)
-			{
-			case sf::Event::EventType::Closed:
-				window.close();
-				break;
-
-			case sf::Event::EventType::KeyPressed:
-				if (evento.key.code == sf::Keyboard::Key::Escape)
-					window.close();
-				break;
-			default:
-				break;
-			}
-
-			// RENDER CYCLE
-			window.clear(sf::Color::Black);
-
-			window.draw(circulo.getFormita());
-			window.draw(rectangulo);
-
-			// RENDER OBJECTS
-			window.display();
-
-		}
-
-		//Acá termina el while principal
-	}
+    sf::RectangleShape badRect(sf::Vector2f(50, 100));
+    initShape(badRect, sf::Vector2f(250, 50), sf::Color::Red);
 
 
-	return 0;
+    rectangulo.setFillColor(sf::Color::Green);
+    rectangulo.setPosition(100, 50); // Posición visible inicial
+    bool moving = false;
+    while (window.isOpen())
+    {
+        sf::Event evento;
+        while (window.pollEvent(evento))
+        {
+            
+            if (evento.type == sf::Event::Closed)
+                window.close();
+
+            if (evento.type == sf::Event::KeyPressed && evento.key.code == sf::Keyboard::Escape)
+                window.close();
+
+            /*
+            if (evento.type == sf::Event::KeyPressed && evento.key.code == sf::Keyboard::D)
+                moving = true;
+            if (evento.type == sf::Event::EventType::KeyReleased && evento.key.code == sf::Keyboard::D)
+                moving = false;
+              
+              */
+            //movimientos
+            playerRect.move(10, 0);
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+                playerRect.move(0, 10);
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+                playerRect.move(0, -10);
+            //Target reached
+            if (playerRect.getGlobalBounds().intersects(targetRect.getGlobalBounds()))
+                window.close();
+            //Bad intersect
+            if (playerRect.getGlobalBounds().intersects(badRect.getGlobalBounds()))
+                playerRect.setPosition(startPos);
+        }
+
+        // Actualización de lógica
+        
+
+        // Ciclo de renderización
+        window.clear(sf::Color::Black);
+        // Descomenta la siguiente línea si circulo está correctamente definido y Formita tiene el método getFormita
+        // window.draw(circulo.getFormita()); 
+        window.draw(playerRect);
+        window.draw(badRect);
+        window.draw(targetRect);
+        window.display();
+    }
+
+    return 0;
 }
